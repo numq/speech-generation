@@ -1,8 +1,8 @@
-package com.github.numq.tts.bark
+package com.github.numq.textgeneration.bark
 
-import com.github.numq.tts.TextToSpeech
+import com.github.numq.textgeneration.SpeechGeneration
 
-internal class BarkTextToSpeech(private val nativeBarkTextToSpeech: NativeBarkTextToSpeech) : TextToSpeech.Bark {
+internal class BarkSpeechGeneration(private val nativeBarkSpeechGeneration: NativeBarkSpeechGeneration) : SpeechGeneration.Bark {
     override val sampleRate = 22_500
 
     private fun convertFLT32ToPCM16(inputBytes: ByteArray): ByteArray {
@@ -26,12 +26,12 @@ internal class BarkTextToSpeech(private val nativeBarkTextToSpeech: NativeBarkTe
     }
 
     override suspend fun generate(text: String) = runCatching {
-        convertFLT32ToPCM16(nativeBarkTextToSpeech.generate(text = text))
+        convertFLT32ToPCM16(nativeBarkSpeechGeneration.generate(text = text))
     }
 
     override fun close() = runCatching {
         super.close()
 
-        nativeBarkTextToSpeech.close()
+        nativeBarkSpeechGeneration.close()
     }.getOrDefault(Unit)
 }

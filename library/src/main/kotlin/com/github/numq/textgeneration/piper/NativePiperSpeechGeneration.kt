@@ -1,6 +1,6 @@
-package com.github.numq.tts.piper
+package com.github.numq.textgeneration.piper
 
-internal class NativePiperTextToSpeech(dataPath: String) {
+internal class NativePiperSpeechGeneration(dataPath: String) {
     init {
         initNative(dataPath = dataPath)
     }

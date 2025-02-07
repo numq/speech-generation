@@ -1,4 +1,4 @@
-package com.github.numq.tts.piper.model
+package com.github.numq.textgeneration.piper.model
 
 import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
@@ -52,7 +52,5 @@ internal class DefaultPiperOnnxModel(modelPath: String) : PiperOnnxModel {
         }
     }
 
-    override fun close() = runCatching {
-        session.close()
-    }.getOrDefault(Unit)
+    override fun close() = runCatching { session.close() }.getOrDefault(Unit)
 }

@@ -1,5 +1,5 @@
-#ifndef TTS_DELETER_H
-#define TTS_DELETER_H
+#ifndef SPEECH_GENERATION_DELETER_H
+#define SPEECH_GENERATION_DELETER_H
 
 #include <memory>
 #include "bark.h"
@@ -14,4 +14,4 @@ struct bark_context_deleter {
 
 typedef std::unique_ptr<bark_context, bark_context_deleter> bark_context_ptr;
 
-#endif //TTS_DELETER_H
+#endif //SPEECH_GENERATION_DELETER_H

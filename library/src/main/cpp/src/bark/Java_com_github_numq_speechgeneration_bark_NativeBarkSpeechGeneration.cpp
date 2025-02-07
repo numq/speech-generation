@@ -1,4 +1,4 @@
-#include "Java_com_github_numq_tts_bark_NativeBarkTextToSpeech.h"
+#include "Java_com_github_numq_speechgeneration_bark_NativeBarkSpeechGeneration.h"
 
 static jclass exceptionClass;
 static std::shared_mutex mutex;
@@ -9,6 +9,8 @@ void handleException(JNIEnv *env, const std::string &errorMessage) {
 }
 
 bark_context *getPointer(jlong handle) {
+    std::shared_lock<std::shared_mutex> lock(mutex);
+
     auto it = pointers.find(handle);
     if (it == pointers.end()) {
         throw std::runtime_error("Invalid handle");
@@ -42,7 +44,8 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
 }
 
 JNIEXPORT jlong JNICALL
-Java_com_github_numq_tts_bark_NativeBarkTextToSpeech_initNative(JNIEnv *env, jclass thisClass, jstring modelPath) {
+Java_com_github_numq_speechgeneration_bark_NativeBarkSpeechGeneration_initNative(JNIEnv *env, jclass thisClass,
+                                                                                 jstring modelPath) {
     std::unique_lock<std::shared_mutex> lock(mutex);
 
     try {
@@ -79,8 +82,9 @@ Java_com_github_numq_tts_bark_NativeBarkTextToSpeech_initNative(JNIEnv *env, jcl
 }
 
 JNIEXPORT jbyteArray JNICALL
-Java_com_github_numq_tts_bark_NativeBarkTextToSpeech_generateNative(JNIEnv *env, jclass thisClass, jlong handle,
-                                                                    jstring text) {
+Java_com_github_numq_speechgeneration_bark_NativeBarkSpeechGeneration_generateNative(JNIEnv *env, jclass thisClass,
+                                                                                     jlong handle,
+                                                                                     jstring text) {
     std::shared_lock<std::shared_mutex> lock(mutex);
 
     try {
@@ -124,8 +128,9 @@ Java_com_github_numq_tts_bark_NativeBarkTextToSpeech_generateNative(JNIEnv *env,
 }
 
 JNIEXPORT void JNICALL
-Java_com_github_numq_tts_bark_NativeBarkTextToSpeech_freeNative(JNIEnv *env, jclass thisClass, jlong handle) {
-    std::shared_lock<std::shared_mutex> lock(mutex);
+Java_com_github_numq_speechgeneration_bark_NativeBarkSpeechGeneration_freeNative(JNIEnv *env, jclass thisClass,
+                                                                                 jlong handle) {
+    std::unique_lock<std::shared_mutex> lock(mutex);
 
     try {
         if (pointers.erase(handle) == 0) {

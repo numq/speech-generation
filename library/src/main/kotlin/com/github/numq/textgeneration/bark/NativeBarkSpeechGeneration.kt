@@ -1,8 +1,8 @@
-package com.github.numq.tts.bark
+package com.github.numq.textgeneration.bark
 
 import java.lang.ref.Cleaner
 
-internal class NativeBarkTextToSpeech(modelPath: String) : AutoCloseable {
+internal class NativeBarkSpeechGeneration(modelPath: String) : AutoCloseable {
     private val nativeHandle = initNative(modelPath = modelPath).also { handle ->
         require(handle != -1L) { "Unable to initialize native library" }
     }

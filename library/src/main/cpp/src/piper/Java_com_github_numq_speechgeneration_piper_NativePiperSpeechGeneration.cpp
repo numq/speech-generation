@@ -1,4 +1,4 @@
-#include "Java_com_github_numq_tts_piper_NativePiperTextToSpeech.h"
+#include "Java_com_github_numq_speechgeneration_piper_NativePiperSpeechGeneration.h"
 
 static jclass exceptionClass;
 static jclass stringClass;
@@ -37,11 +37,16 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
     if (exceptionClass) env->DeleteGlobalRef(exceptionClass);
     if (stringClass) env->DeleteGlobalRef(stringClass);
 
-    if (isInitialized) espeak_Terminate();
+    std::unique_lock<std::shared_mutex> lock(mutex);
+    if (isInitialized) {
+        espeak_Terminate();
+        isInitialized = false;
+    }
 }
 
 JNIEXPORT void JNICALL
-Java_com_github_numq_tts_piper_NativePiperTextToSpeech_initNative(JNIEnv *env, jclass thisClass, jstring dataPath) {
+Java_com_github_numq_speechgeneration_piper_NativePiperSpeechGeneration_initNative(JNIEnv *env, jclass thisClass,
+                                                                                   jstring dataPath) {
     std::unique_lock<std::shared_mutex> lock(mutex);
 
     try {
@@ -70,9 +75,9 @@ Java_com_github_numq_tts_piper_NativePiperTextToSpeech_initNative(JNIEnv *env, j
 }
 
 JNIEXPORT jobjectArray JNICALL
-Java_com_github_numq_tts_piper_NativePiperTextToSpeech_phonemizeNative(JNIEnv *env, jclass thisClass,
-                                                                       jstring voice,
-                                                                       jstring text) {
+Java_com_github_numq_speechgeneration_piper_NativePiperSpeechGeneration_phonemizeNative(JNIEnv *env, jclass thisClass,
+                                                                                        jstring voice,
+                                                                                        jstring text) {
     std::shared_lock<std::shared_mutex> lock(mutex);
 
     try {

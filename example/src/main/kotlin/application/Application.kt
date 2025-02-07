@@ -15,11 +15,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.singleWindowApplication
-import com.github.numq.tts.TextToSpeech
+import com.github.numq.textgeneration.SpeechGeneration
 import interaction.InteractionScreen
 import playback.PlaybackService
 
-const val APP_NAME = "Text-To-Speech"
+const val APP_NAME = "Text generation"
 
 fun main(args: Array<String>) {
     val (barkModelPath, piperModelPath, piperConfigurationPath) = args
@@ -32,26 +32,26 @@ fun main(args: Array<String>) {
 
     checkNotNull(pathToBinariesPiper) { "Binaries not found" }
 
-    TextToSpeech.Bark.loadCUDA(
-        ggmlbase = "$pathToBinariesBark\\ggml-base.dll",
-        ggmlcpu = "$pathToBinariesBark\\ggml-cpu.dll",
-        ggmlcuda = "$pathToBinariesBark\\ggml-cuda.dll",
+    SpeechGeneration.Bark.loadCUDA(
+        ggmlBase = "$pathToBinariesBark\\ggml-base.dll",
+        ggmlCpu = "$pathToBinariesBark\\ggml-cpu.dll",
+        ggmlCuda = "$pathToBinariesBark\\ggml-cuda.dll",
         ggml = "$pathToBinariesBark\\ggml.dll",
-        libttsbark = "$pathToBinariesBark\\libtts_bark.dll"
+        textGenerationBark = "$pathToBinariesBark\\text-generation-bark.dll"
     ).getOrThrow()
 
-    TextToSpeech.Piper.load(
-        espeakng = "$pathToBinariesPiper\\espeak-ng.dll",
-        libttspiper = "$pathToBinariesPiper\\libtts_piper.dll"
+    SpeechGeneration.Piper.load(
+        espeak = "$pathToBinariesPiper\\espeak-ng.dll",
+        textGenerationPiper = "$pathToBinariesPiper\\text-generation-piper.dll"
     ).getOrThrow()
 
     singleWindowApplication(state = WindowState(width = 512.dp, height = 512.dp), title = APP_NAME) {
         val bark = remember {
-            TextToSpeech.Bark.create(modelPath = barkModelPath).getOrThrow()
+            SpeechGeneration.Bark.create(modelPath = barkModelPath).getOrThrow()
         }
 
         val piper = remember {
-            TextToSpeech.Piper.create(
+            SpeechGeneration.Piper.create(
                 modelPath = piperModelPath,
                 configurationPath = piperConfigurationPath
             ).getOrThrow()

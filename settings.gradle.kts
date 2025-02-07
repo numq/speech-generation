@@ -1,3 +1,3 @@
-rootProject.name = "text-to-speech"
+rootProject.name = "text-generation"
 
 include("example", "library")

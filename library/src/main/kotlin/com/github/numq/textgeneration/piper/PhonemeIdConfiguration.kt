@@ -1,4 +1,4 @@
-package com.github.numq.tts.piper
+package com.github.numq.textgeneration.piper
 
 data class PhonemeIdConfiguration(
     var phonemeIdMap: Map<Char, Long>? = null,

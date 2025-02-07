@@ -15,19 +15,19 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.unit.dp
-import com.github.numq.tts.TextToSpeech
+import com.github.numq.textgeneration.SpeechGeneration
 import generation.GenerationResult
 import kotlinx.coroutines.*
 import playback.PlaybackService
 import playback.PlaybackState
-import selector.TextToSpeechSelector
+import selector.TextGenerationSelector
 import javax.sound.sampled.AudioFormat
 import kotlin.time.measureTime
 
 @Composable
 fun InteractionScreen(
-    bark: TextToSpeech.Bark,
-    piper: TextToSpeech.Piper,
+    bark: SpeechGeneration.Bark,
+    piper: SpeechGeneration.Piper,
     playbackService: PlaybackService,
     handleThrowable: (Throwable) -> Unit,
 ) {
@@ -37,13 +37,13 @@ fun InteractionScreen(
 
     var playbackJob by remember { mutableStateOf<Job?>(null) }
 
-    var selectedTextToSpeech by remember { mutableStateOf(TextToSpeechItem.BARK) }
+    var selectedTextGeneration by remember { mutableStateOf(TextGenerationItem.BARK) }
 
-    val textToSpeech = remember(selectedTextToSpeech) {
-        when (selectedTextToSpeech) {
-            TextToSpeechItem.BARK -> bark
+    val textToSpeech = remember(selectedTextGeneration) {
+        when (selectedTextGeneration) {
+            TextGenerationItem.BARK -> bark
 
-            TextToSpeechItem.PIPER -> piper
+            TextGenerationItem.PIPER -> piper
         }
     }
 
@@ -135,12 +135,12 @@ fun InteractionScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(space = 8.dp, alignment = Alignment.CenterVertically)
         ) {
-            TextToSpeechSelector(
-                modifier = Modifier.fillMaxWidth(), selectedTextToSpeech = selectedTextToSpeech
-            ) { tts ->
+            TextGenerationSelector(
+                modifier = Modifier.fillMaxWidth(), selectedTextGeneration = selectedTextGeneration
+            ) { textGeneration ->
                 requestCancellation = true
 
-                selectedTextToSpeech = tts
+                selectedTextGeneration = textGeneration
             }
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 Column(

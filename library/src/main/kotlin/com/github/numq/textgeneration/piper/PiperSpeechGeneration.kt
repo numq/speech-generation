@@ -1,15 +1,15 @@
-package com.github.numq.tts.piper
+package com.github.numq.textgeneration.piper
 
-import com.github.numq.tts.TextToSpeech
-import com.github.numq.tts.piper.model.PiperOnnxModel
+import com.github.numq.textgeneration.SpeechGeneration
+import com.github.numq.textgeneration.piper.model.PiperOnnxModel
 import java.io.ByteArrayOutputStream
 import java.text.Normalizer
 
-internal class PiperTextToSpeech(
-    private val nativePiperTextToSpeech: NativePiperTextToSpeech,
+internal class PiperSpeechGeneration(
+    private val nativePiperSpeechGeneration: NativePiperSpeechGeneration,
     private val model: PiperOnnxModel,
     configuration: PiperConfiguration,
-) : TextToSpeech.Piper {
+) : SpeechGeneration.Piper {
     private companion object {
         private const val CLAUSE_TYPE_CLAUSE = 0x00040000
         private const val CLAUSE_TYPE_SENTENCE = 0x00080000
@@ -259,7 +259,7 @@ internal class PiperTextToSpeech(
         var unprocessedText = text.trim()
 
         while (unprocessedText.isNotBlank()) {
-            val phonemizationResult = nativePiperTextToSpeech.phonemize(
+            val phonemizationResult = nativePiperSpeechGeneration.phonemize(
                 voice = phonemeConfig.voice,
                 text = unprocessedText
             )

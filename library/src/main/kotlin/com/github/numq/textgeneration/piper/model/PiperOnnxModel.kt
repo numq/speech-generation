@@ -1,4 +1,4 @@
-package com.github.numq.tts.piper.model
+package com.github.numq.textgeneration.piper.model
 
 internal interface PiperOnnxModel : AutoCloseable {
     fun generate(

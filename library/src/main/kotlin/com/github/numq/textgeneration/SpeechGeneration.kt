@@ -1,12 +1,12 @@
-package com.github.numq.tts
+package com.github.numq.textgeneration
 
-import com.github.numq.tts.bark.BarkTextToSpeech
-import com.github.numq.tts.bark.NativeBarkTextToSpeech
-import com.github.numq.tts.piper.NativePiperTextToSpeech
-import com.github.numq.tts.piper.PhonemeType
-import com.github.numq.tts.piper.PiperConfiguration
-import com.github.numq.tts.piper.PiperTextToSpeech
-import com.github.numq.tts.piper.model.DefaultPiperOnnxModel
+import com.github.numq.textgeneration.bark.BarkSpeechGeneration
+import com.github.numq.textgeneration.bark.NativeBarkSpeechGeneration
+import com.github.numq.textgeneration.piper.NativePiperSpeechGeneration
+import com.github.numq.textgeneration.piper.PhonemeType
+import com.github.numq.textgeneration.piper.PiperConfiguration
+import com.github.numq.textgeneration.piper.PiperSpeechGeneration
+import com.github.numq.textgeneration.piper.model.DefaultPiperOnnxModel
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import java.io.File
@@ -16,11 +16,11 @@ import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import kotlin.io.path.Path
 
-interface TextToSpeech : AutoCloseable {
+interface SpeechGeneration : AutoCloseable {
     val sampleRate: Int
     suspend fun generate(text: String): Result<ByteArray>
 
-    interface Bark : TextToSpeech {
+    interface Bark : SpeechGeneration {
         companion object {
             private sealed interface LoadState {
                 data object Unloaded : LoadState
@@ -34,66 +34,66 @@ interface TextToSpeech : AutoCloseable {
             private var loadState: LoadState = LoadState.Unloaded
 
             /**
-             * Loads the CPU-based native libraries required for Bark text-to-speech generation.
+             * Loads the CPU-based native libraries required for Bark speech generation.
              *
              * This method must be called before creating a Bark instance.
              *
-             * @param ggmlbase the path to the ggml-base library.
-             * @param ggmlcpu the path to the ggml-cpu library.
-             * @param ggml the path to the ggml library.
-             * @param libttsbark the path to the libtts_bark library.
-             * @return a [Result] indicating the success or failure of the operation.
+             * @param ggmlBase The path to the `ggml-base` binary.
+             * @param ggmlCpu The path to the `ggml-cpu` binary.
+             * @param ggml The path to the `ggml` binary.
+             * @param textGenerationBark The path to the `text-generation-bark` binary.
+             * @return A [Result] indicating the success or failure of the operation.
              */
             fun loadCPU(
-                ggmlbase: String,
-                ggmlcpu: String,
+                ggmlBase: String,
+                ggmlCpu: String,
                 ggml: String,
-                libttsbark: String,
+                textGenerationBark: String,
             ) = runCatching {
                 check(loadState is LoadState.Unloaded) { "Native binaries have already been loaded as ${loadState::class.simpleName}" }
 
-                System.load(ggmlbase)
-                System.load(ggmlcpu)
+                System.load(ggmlBase)
+                System.load(ggmlCpu)
                 System.load(ggml)
-                System.load(libttsbark)
+                System.load(textGenerationBark)
 
                 loadState = LoadState.CPU
             }
 
             /**
-             * Loads the CUDA-based native libraries required for Bark text-to-speech generation.
+             * Loads the CUDA-based native libraries required for Bark speech generation.
              *
              * This method must be called before creating a Bark instance.
              *
-             * @param ggmlbase the path to the ggml-base library.
-             * @param ggmlcpu the path to the ggml-cpu library.
-             * @param ggmlcuda the path to the ggml-cuda library.
-             * @param ggml the path to the ggml library.
-             * @param libttsbark the path to the libtts_bark library.
-             * @return a [Result] indicating the success or failure of the operation.
+             * @param ggmlBase The path to the `ggml-base` binary.
+             * @param ggmlCpu The path to the `ggml-cpu` binary.
+             * @param ggmlCuda The path to the `ggml-cuda` binary.
+             * @param ggml The path to the `ggml` binary.
+             * @param textGenerationBark The path to the `text-generation-bark` binary.
+             * @return A [Result] indicating the success or failure of the operation.
              */
             fun loadCUDA(
-                ggmlbase: String,
-                ggmlcpu: String,
-                ggmlcuda: String,
+                ggmlBase: String,
+                ggmlCpu: String,
+                ggmlCuda: String,
                 ggml: String,
-                libttsbark: String,
+                textGenerationBark: String,
             ) = runCatching {
                 check(loadState is LoadState.Unloaded) { "Native binaries have already been loaded as ${loadState::class.simpleName}" }
 
-                System.load(ggmlbase)
-                System.load(ggmlcpu)
-                System.load(ggmlcuda)
+                System.load(ggmlBase)
+                System.load(ggmlCpu)
+                System.load(ggmlCuda)
                 System.load(ggml)
-                System.load(libttsbark)
+                System.load(textGenerationBark)
 
                 loadState = LoadState.CUDA
             }
 
             /**
-             * Creates a new instance of [TextToSpeech] using the Bark implementation.
+             * Creates a new instance of [SpeechGeneration] using the Bark implementation.
              *
-             * This method initializes the Bark text-to-speech system with the specified model.
+             * This method initializes the Bark speech generation with the specified model.
              *
              * @param modelPath the path to the Bark model file.
              * @return a [Result] containing the created instance if successful.
@@ -102,7 +102,7 @@ interface TextToSpeech : AutoCloseable {
             fun create(modelPath: String): Result<Bark> = runCatching {
                 check(loadState !is LoadState.Unloaded) { "Native binaries were not loaded" }
 
-                BarkTextToSpeech(nativeBarkTextToSpeech = NativeBarkTextToSpeech(modelPath = modelPath))
+                BarkSpeechGeneration(nativeBarkSpeechGeneration = NativeBarkSpeechGeneration(modelPath = modelPath))
             }
         }
 
@@ -111,7 +111,7 @@ interface TextToSpeech : AutoCloseable {
         }
     }
 
-    interface Piper : TextToSpeech {
+    interface Piper : SpeechGeneration {
         companion object {
             private var isLoaded = false
 
@@ -187,28 +187,28 @@ interface TextToSpeech : AutoCloseable {
             }
 
             /**
-             * Loads native libraries required for Piper text-to-speech generation.
+             * Loads the native libraries required for Piper speech generation.
              *
              * This method must be called before creating a Piper instance.
              *
-             * @param espeakng the path to the espeak-ng library.
-             * @param libttspiper the path to the libtts_piper library.
-             * @return a [Result] indicating the success or failure of the operation.
+             * @param espeak The path to the `espeak-ng` binary.
+             * @param textGenerationPiper The path to the `text-generation-piper` binary.
+             * @return A [Result] indicating the success or failure of the operation.
              */
             fun load(
-                espeakng: String,
-                libttspiper: String,
+                espeak: String,
+                textGenerationPiper: String,
             ) = runCatching {
-                System.load(espeakng)
-                System.load(libttspiper)
+                System.load(espeak)
+                System.load(textGenerationPiper)
             }.onSuccess {
                 isLoaded = true
             }
 
             /**
-             * Creates a new instance of [TextToSpeech] using the Piper implementation.
+             * Creates a new instance of [SpeechGeneration] using the Piper implementation.
              *
-             * This method initializes the Piper text-to-speech system with the specified model.
+             * This method initializes the Piper speech generation with the specified model.
              *
              * @param modelPath the path to the Piper model file.
              * @param configurationPath the path to the Piper configuration file.
@@ -281,8 +281,8 @@ interface TextToSpeech : AutoCloseable {
                     parseSynthesisConfig(json = configurationJson, config = this)
                 }
 
-                PiperTextToSpeech(
-                    nativePiperTextToSpeech = NativePiperTextToSpeech(dataPath = tempDir.absolutePath),
+                PiperSpeechGeneration(
+                    nativePiperSpeechGeneration = NativePiperSpeechGeneration(dataPath = tempDir.absolutePath),
                     model = DefaultPiperOnnxModel(modelPath = modelPath),
                     configuration = PiperConfiguration(
                         modelConfig = modelConfig, phonemeConfig = phonemeConfig, synthesisConfig = synthesisConfig
