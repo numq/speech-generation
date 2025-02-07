@@ -15,12 +15,12 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.unit.dp
-import com.github.numq.textgeneration.SpeechGeneration
+import com.github.numq.speechgeneration.SpeechGeneration
 import generation.GenerationResult
 import kotlinx.coroutines.*
 import playback.PlaybackService
 import playback.PlaybackState
-import selector.TextGenerationSelector
+import selector.SpeechGenerationSelector
 import javax.sound.sampled.AudioFormat
 import kotlin.time.measureTime
 
@@ -37,18 +37,18 @@ fun InteractionScreen(
 
     var playbackJob by remember { mutableStateOf<Job?>(null) }
 
-    var selectedTextGeneration by remember { mutableStateOf(TextGenerationItem.BARK) }
+    var selectedSpeechGeneration by remember { mutableStateOf(SpeechGenerationItem.BARK) }
 
-    val textToSpeech = remember(selectedTextGeneration) {
-        when (selectedTextGeneration) {
-            TextGenerationItem.BARK -> bark
+    val speechGeneration = remember(selectedSpeechGeneration) {
+        when (selectedSpeechGeneration) {
+            SpeechGenerationItem.BARK -> bark
 
-            TextGenerationItem.PIPER -> piper
+            SpeechGenerationItem.PIPER -> piper
         }
     }
 
-    val sampleRate = remember(textToSpeech) {
-        textToSpeech.sampleRate
+    val sampleRate = remember(speechGeneration) {
+        speechGeneration.sampleRate
     }
 
     var generationResult by remember { mutableStateOf<GenerationResult>(GenerationResult.Empty) }
@@ -78,13 +78,13 @@ fun InteractionScreen(
             var pcmBytes: ByteArray? = null
 
             val elapsedTime = measureTime {
-                textToSpeech.generate(text = text).onSuccess {
+                speechGeneration.generate(text = text).onSuccess {
                     pcmBytes = it
                 }.onFailure(handleThrowable)
             }
 
             generationResult = pcmBytes?.let { bytes ->
-                GenerationResult.Content(text, bytes, textToSpeech.sampleRate, elapsedTime)
+                GenerationResult.Content(text, bytes, speechGeneration.sampleRate, elapsedTime)
             } ?: GenerationResult.Empty
 
             generationJob = null
@@ -135,12 +135,12 @@ fun InteractionScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(space = 8.dp, alignment = Alignment.CenterVertically)
         ) {
-            TextGenerationSelector(
-                modifier = Modifier.fillMaxWidth(), selectedTextGeneration = selectedTextGeneration
-            ) { textGeneration ->
+            SpeechGenerationSelector(
+                modifier = Modifier.fillMaxWidth(), selectedSpeechGeneration = selectedSpeechGeneration
+            ) { speechGeneration ->
                 requestCancellation = true
 
-                selectedTextGeneration = textGeneration
+                selectedSpeechGeneration = speechGeneration
             }
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 Column(

@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.singleWindowApplication
-import com.github.numq.textgeneration.SpeechGeneration
+import com.github.numq.speechgeneration.SpeechGeneration
 import interaction.InteractionScreen
 import playback.PlaybackService
 
@@ -37,12 +37,12 @@ fun main(args: Array<String>) {
         ggmlCpu = "$pathToBinariesBark\\ggml-cpu.dll",
         ggmlCuda = "$pathToBinariesBark\\ggml-cuda.dll",
         ggml = "$pathToBinariesBark\\ggml.dll",
-        textGenerationBark = "$pathToBinariesBark\\text-generation-bark.dll"
+        speechGenerationBark = "$pathToBinariesBark\\speech-generation-bark.dll"
     ).getOrThrow()
 
     SpeechGeneration.Piper.load(
         espeak = "$pathToBinariesPiper\\espeak-ng.dll",
-        textGenerationPiper = "$pathToBinariesPiper\\text-generation-piper.dll"
+        speechGenerationPiper = "$pathToBinariesPiper\\speech-generation-piper.dll"
     ).getOrThrow()
 
     singleWindowApplication(state = WindowState(width = 512.dp, height = 512.dp), title = APP_NAME) {

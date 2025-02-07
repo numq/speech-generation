@@ -1,12 +1,12 @@
-package com.github.numq.textgeneration
+package com.github.numq.speechgeneration
 
-import com.github.numq.textgeneration.bark.BarkSpeechGeneration
-import com.github.numq.textgeneration.bark.NativeBarkSpeechGeneration
-import com.github.numq.textgeneration.piper.NativePiperSpeechGeneration
-import com.github.numq.textgeneration.piper.PhonemeType
-import com.github.numq.textgeneration.piper.PiperConfiguration
-import com.github.numq.textgeneration.piper.PiperSpeechGeneration
-import com.github.numq.textgeneration.piper.model.DefaultPiperOnnxModel
+import com.github.numq.speechgeneration.bark.BarkSpeechGeneration
+import com.github.numq.speechgeneration.bark.NativeBarkSpeechGeneration
+import com.github.numq.speechgeneration.piper.NativePiperSpeechGeneration
+import com.github.numq.speechgeneration.piper.PhonemeType
+import com.github.numq.speechgeneration.piper.PiperConfiguration
+import com.github.numq.speechgeneration.piper.PiperSpeechGeneration
+import com.github.numq.speechgeneration.piper.model.DefaultPiperOnnxModel
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import java.io.File
@@ -41,21 +41,21 @@ interface SpeechGeneration : AutoCloseable {
              * @param ggmlBase The path to the `ggml-base` binary.
              * @param ggmlCpu The path to the `ggml-cpu` binary.
              * @param ggml The path to the `ggml` binary.
-             * @param textGenerationBark The path to the `text-generation-bark` binary.
+             * @param speechGenerationBark The path to the `speech-generation-bark` binary.
              * @return A [Result] indicating the success or failure of the operation.
              */
             fun loadCPU(
                 ggmlBase: String,
                 ggmlCpu: String,
                 ggml: String,
-                textGenerationBark: String,
+                speechGenerationBark: String,
             ) = runCatching {
                 check(loadState is LoadState.Unloaded) { "Native binaries have already been loaded as ${loadState::class.simpleName}" }
 
                 System.load(ggmlBase)
                 System.load(ggmlCpu)
                 System.load(ggml)
-                System.load(textGenerationBark)
+                System.load(speechGenerationBark)
 
                 loadState = LoadState.CPU
             }
@@ -69,7 +69,7 @@ interface SpeechGeneration : AutoCloseable {
              * @param ggmlCpu The path to the `ggml-cpu` binary.
              * @param ggmlCuda The path to the `ggml-cuda` binary.
              * @param ggml The path to the `ggml` binary.
-             * @param textGenerationBark The path to the `text-generation-bark` binary.
+             * @param speechGenerationBark The path to the `speech-generation-bark` binary.
              * @return A [Result] indicating the success or failure of the operation.
              */
             fun loadCUDA(
@@ -77,7 +77,7 @@ interface SpeechGeneration : AutoCloseable {
                 ggmlCpu: String,
                 ggmlCuda: String,
                 ggml: String,
-                textGenerationBark: String,
+                speechGenerationBark: String,
             ) = runCatching {
                 check(loadState is LoadState.Unloaded) { "Native binaries have already been loaded as ${loadState::class.simpleName}" }
 
@@ -85,7 +85,7 @@ interface SpeechGeneration : AutoCloseable {
                 System.load(ggmlCpu)
                 System.load(ggmlCuda)
                 System.load(ggml)
-                System.load(textGenerationBark)
+                System.load(speechGenerationBark)
 
                 loadState = LoadState.CUDA
             }
@@ -192,15 +192,15 @@ interface SpeechGeneration : AutoCloseable {
              * This method must be called before creating a Piper instance.
              *
              * @param espeak The path to the `espeak-ng` binary.
-             * @param textGenerationPiper The path to the `text-generation-piper` binary.
+             * @param speechGenerationPiper The path to the `speech-generation-piper` binary.
              * @return A [Result] indicating the success or failure of the operation.
              */
             fun load(
                 espeak: String,
-                textGenerationPiper: String,
+                speechGenerationPiper: String,
             ) = runCatching {
                 System.load(espeak)
-                System.load(textGenerationPiper)
+                System.load(speechGenerationPiper)
             }.onSuccess {
                 isLoaded = true
             }

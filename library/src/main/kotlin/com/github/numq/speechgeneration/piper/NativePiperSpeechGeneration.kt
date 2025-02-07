@@ -1,4 +1,4 @@
-package com.github.numq.textgeneration.piper
+package com.github.numq.speechgeneration.piper
 
 internal class NativePiperSpeechGeneration(dataPath: String) {
     init {

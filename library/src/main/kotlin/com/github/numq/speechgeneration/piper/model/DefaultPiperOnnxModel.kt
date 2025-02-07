@@ -1,4 +1,4 @@
-package com.github.numq.textgeneration.piper.model
+package com.github.numq.speechgeneration.piper.model
 
 import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment

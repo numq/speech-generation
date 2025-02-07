@@ -1,6 +1,6 @@
-package com.github.numq.textgeneration.bark
+package com.github.numq.speechgeneration.bark
 
-import com.github.numq.textgeneration.SpeechGeneration
+import com.github.numq.speechgeneration.SpeechGeneration
 
 internal class BarkSpeechGeneration(private val nativeBarkSpeechGeneration: NativeBarkSpeechGeneration) : SpeechGeneration.Bark {
     override val sampleRate = 22_500

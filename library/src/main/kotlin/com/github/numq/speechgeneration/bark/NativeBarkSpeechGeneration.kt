@@ -1,4 +1,4 @@
-package com.github.numq.textgeneration.bark
+package com.github.numq.speechgeneration.bark
 
 import java.lang.ref.Cleaner
 

@@ -1,7 +1,7 @@
-package com.github.numq.textgeneration.piper
+package com.github.numq.speechgeneration.piper
 
-import com.github.numq.textgeneration.SpeechGeneration
-import com.github.numq.textgeneration.piper.model.PiperOnnxModel
+import com.github.numq.speechgeneration.SpeechGeneration
+import com.github.numq.speechgeneration.piper.model.PiperOnnxModel
 import java.io.ByteArrayOutputStream
 import java.text.Normalizer
 

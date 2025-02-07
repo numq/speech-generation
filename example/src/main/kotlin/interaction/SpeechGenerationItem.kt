@@ -1,5 +1,5 @@
 package interaction
 
-enum class TextGenerationItem {
+enum class SpeechGenerationItem {
     BARK, PIPER
 }
