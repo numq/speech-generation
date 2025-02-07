@@ -19,7 +19,7 @@ import com.github.numq.textgeneration.SpeechGeneration
 import interaction.InteractionScreen
 import playback.PlaybackService
 
-const val APP_NAME = "Text generation"
+const val APP_NAME = "Speech generation"
 
 fun main(args: Array<String>) {
     val (barkModelPath, piperModelPath, piperConfigurationPath) = args
