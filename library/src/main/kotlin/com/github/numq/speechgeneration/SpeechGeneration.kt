@@ -22,6 +22,9 @@ interface SpeechGeneration : AutoCloseable {
 
     interface Bark : SpeechGeneration {
         companion object {
+            private const val DEFAULT_TEMPERATURE = .7f
+            private const val DEFAULT_SEED = 0L
+
             private sealed interface LoadState {
                 data object Unloaded : LoadState
 
@@ -96,13 +99,27 @@ interface SpeechGeneration : AutoCloseable {
              * This method initializes the Bark speech generation with the specified model.
              *
              * @param modelPath the path to the Bark model file.
+             * @param temperature the temperature parameter controls the randomness of the generated speech.
+             *        Higher values result in more diverse but potentially less coherent outputs.
+             * @param seed the random seed to ensure deterministic outputs. If set to the same value,
+             *        it will generate the same audio output for the same input text.
              * @return a [Result] containing the created instance if successful.
              * @throws IllegalStateException if the native libraries are not loaded or if there is an issue with the underlying native libraries.
              */
-            fun create(modelPath: String): Result<Bark> = runCatching {
+            fun create(
+                modelPath: String,
+                temperature: Float = DEFAULT_TEMPERATURE,
+                seed: Long = DEFAULT_SEED,
+            ): Result<Bark> = runCatching {
                 check(loadState !is LoadState.Unloaded) { "Native binaries were not loaded" }
 
-                BarkSpeechGeneration(nativeBarkSpeechGeneration = NativeBarkSpeechGeneration(modelPath = modelPath))
+                BarkSpeechGeneration(
+                    nativeBarkSpeechGeneration = NativeBarkSpeechGeneration(
+                        modelPath = modelPath,
+                        temperature = temperature,
+                        seed = seed
+                    )
+                )
             }
         }
 
@@ -215,10 +232,7 @@ interface SpeechGeneration : AutoCloseable {
              * @return a [Result] containing the created instance if successful.
              * @throws IllegalStateException if the native libraries are not loaded or if there is an issue with the underlying native libraries.
              */
-            fun create(
-                modelPath: String,
-                configurationPath: String,
-            ): Result<Piper> = runCatching {
+            fun create(modelPath: String, configurationPath: String): Result<Piper> = runCatching {
                 check(isLoaded) { "Native binaries were not loaded" }
 
                 val tempDir = Files.createTempDirectory("espeak-ng-data").toFile().apply {

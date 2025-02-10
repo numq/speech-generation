@@ -15,7 +15,7 @@ extern "C" {
 #endif
 
 JNIEXPORT jlong JNICALL Java_com_github_numq_speechgeneration_bark_NativeBarkSpeechGeneration_initNative
-        (JNIEnv *, jclass, jstring);
+        (JNIEnv *, jclass, jstring, jfloat, jlong);
 
 JNIEXPORT jbyteArray JNICALL Java_com_github_numq_speechgeneration_bark_NativeBarkSpeechGeneration_generateNative
         (JNIEnv *, jclass, jlong, jstring);

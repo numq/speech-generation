@@ -45,7 +45,8 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
 
 JNIEXPORT jlong JNICALL
 Java_com_github_numq_speechgeneration_bark_NativeBarkSpeechGeneration_initNative(JNIEnv *env, jclass thisClass,
-                                                                                 jstring modelPath) {
+                                                                                 jstring modelPath, jfloat temperature,
+                                                                                 jlong seed) {
     std::unique_lock<std::shared_mutex> lock(mutex);
 
     try {
@@ -62,8 +63,9 @@ Java_com_github_numq_speechgeneration_bark_NativeBarkSpeechGeneration_initNative
         }
 
         auto params = bark_context_default_params();
+        params.temp = static_cast<float>(temperature);
 
-        auto context = bark_load_model(modelPathStr.c_str(), params, 0);
+        auto context = bark_load_model(modelPathStr.c_str(), params, seed);
         if (!context) {
             throw std::runtime_error("Failed to create native instance");
         }
@@ -98,7 +100,7 @@ Java_com_github_numq_speechgeneration_bark_NativeBarkSpeechGeneration_generateNa
         std::string textStr(textChars);
         env->ReleaseStringUTFChars(text, textChars);
 
-        if (bark_generate_audio(context, textStr.c_str(), 1)) {
+        if (bark_generate_audio(context, textStr.c_str(), 4)) {
             auto data = bark_get_audio_data(context);
 
             auto data_size = bark_get_audio_data_size(context);

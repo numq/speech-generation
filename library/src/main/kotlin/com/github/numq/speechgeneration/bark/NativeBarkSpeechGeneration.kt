@@ -2,8 +2,12 @@ package com.github.numq.speechgeneration.bark
 
 import java.lang.ref.Cleaner
 
-internal class NativeBarkSpeechGeneration(modelPath: String) : AutoCloseable {
-    private val nativeHandle = initNative(modelPath = modelPath).also { handle ->
+internal class NativeBarkSpeechGeneration(modelPath: String, temperature: Float, seed: Long) : AutoCloseable {
+    private val nativeHandle = initNative(
+        modelPath = modelPath,
+        temperature = temperature,
+        seed = seed
+    ).also { handle ->
         require(handle != -1L) { "Unable to initialize native library" }
     }
 
@@ -13,7 +17,7 @@ internal class NativeBarkSpeechGeneration(modelPath: String) : AutoCloseable {
         val cleaner: Cleaner = Cleaner.create()
 
         @JvmStatic
-        external fun initNative(modelPath: String): Long
+        external fun initNative(modelPath: String, temperature: Float, seed: Long): Long
 
         @JvmStatic
         external fun generateNative(handle: Long, text: String): ByteArray
