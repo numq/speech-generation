@@ -1,7 +1,23 @@
 # Speech generation
 
-A JVM library for speech generation written in Kotlin and based on the C++
+JVM library for speech generation written in Kotlin and based on the C++
 libraries [bark.cpp](https://github.com/PABannier/bark.cpp) and [piper](https://github.com/rhasspy/piper)
+
+### See also
+
+- [Stretch](https://github.com/numq/stretch) *to change the speed of audio without changing the pitch*
+
+
+- [Voice Activity Detection](https://github.com/numq/voice-activity-detection) *to extract speech from audio*
+
+
+- [Speech recognition](https://github.com/numq/speech-recognition) *to transcribe audio to text*
+
+
+- [Text generation](https://github.com/numq/text-generation) *to generate text from prompt*
+
+
+- [Noise reduction](https://github.com/numq/noise-reduction) *to remove noise from audio*
 
 ## Features
 
@@ -21,6 +37,18 @@ libraries [bark.cpp](https://github.com/PABannier/bark.cpp) and [piper](https://
    ```
 
 - Unzip binaries
+
+### Piper
+
+- Add dependencies
+   ```kotlin
+   dependencies {
+        implementation("com.microsoft.onnxruntime:onnxruntime:1.20.0")
+        implementation("com.google.code.gson:gson:2.11.0")
+   }
+   ```
+
+- Download one of the voices [here](https://huggingface.co/rhasspy/piper-voices) or use any other compatible voice
 
 ## Usage
 
