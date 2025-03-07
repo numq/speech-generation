@@ -17,7 +17,24 @@ import java.nio.file.StandardCopyOption
 import kotlin.io.path.Path
 
 interface SpeechGeneration : AutoCloseable {
+    /**
+     * The sample rate of the audio data in Hertz (Hz).
+     */
     val sampleRate: Int
+
+    /**
+     * The number of audio channels.
+     */
+    val channels: Int
+
+    /**
+     * Generates speech from the given text.
+     *
+     * The input text is processed to create phonemes, which are then synthesized into speech audio.
+     *
+     * @param text the input text to be phonemized and synthesized into speech.
+     * @return a [Result] containing the byte array of generated speech audio if successful.
+     */
     suspend fun generate(text: String): Result<ByteArray>
 
     interface Bark : SpeechGeneration {
@@ -129,7 +146,31 @@ interface SpeechGeneration : AutoCloseable {
     }
 
     interface Piper : SpeechGeneration {
+        /**
+         * The total number of available speakers.
+         *
+         * @return The number of speakers supported by the engine.
+         */
+        val numSpeakers: Int
+
+        /**
+         * The currently selected speaker identifier.
+         *
+         * @return The identifier of the currently selected speaker.
+         */
+        val selectedSpeakerId: Long
+
+        /**
+         * Selects a speaker identifier for speech synthesis.
+         *
+         * @param speakerId The identifier of the speaker to select.
+         * @return a [Result] indicating success or failure of the operation.
+         */
+        suspend fun selectSpeakerId(speakerId: Long): Result<Unit>
+
         companion object {
+            private const val DEFAULT_SPEAKER_ID = 0L
+
             private var isLoaded = false
 
             private fun parsePhonemeConfig(json: JsonObject, config: PiperConfiguration.PhonemeConfig) {
@@ -229,24 +270,45 @@ interface SpeechGeneration : AutoCloseable {
              *
              * @param modelPath the path to the Piper model file.
              * @param configurationPath the path to the Piper configuration file.
+             * @param speakerId the speaker id. Default is `0`.
              * @return a [Result] containing the created instance if successful.
              * @throws IllegalStateException if the native libraries are not loaded or if there is an issue with the underlying native libraries.
              */
-            fun create(modelPath: String, configurationPath: String): Result<Piper> = runCatching {
-                check(isLoaded) { "Native binaries were not loaded" }
+            fun create(
+                modelPath: String,
+                configurationPath: String,
+                speakerId: Long = DEFAULT_SPEAKER_ID,
+            ): Result<Piper> =
+                runCatching {
+                    check(isLoaded) { "Native binaries were not loaded" }
 
-                val tempDir = Files.createTempDirectory("espeak-ng-data").toFile().apply {
-                    deleteOnExit()
-                }
+                    val tempDir = Files.createTempDirectory("espeak-ng-data").toFile().apply {
+                        deleteOnExit()
+                    }
 
-                val resourceUrl = Companion::class.java.classLoader.getResource("espeak-ng-data")
-                    ?: throw IllegalStateException("Resource directory 'espeak-ng-data' not found")
+                    val resourceUrl = Companion::class.java.classLoader.getResource("espeak-ng-data")
+                        ?: throw IllegalStateException("Resource directory 'espeak-ng-data' not found")
 
-                val uri = resourceUrl.toURI()
+                    val uri = resourceUrl.toURI()
 
-                when (uri.scheme) {
-                    "jar" -> FileSystems.newFileSystem(uri, emptyMap<String, Any>()).use { fs ->
-                        fs.getPath("espeak-ng-data").let { resourceDirPath ->
+                    when (uri.scheme) {
+                        "jar" -> FileSystems.newFileSystem(uri, emptyMap<String, Any>()).use { fs ->
+                            fs.getPath("espeak-ng-data").let { resourceDirPath ->
+                                Files.walk(resourceDirPath).use { paths ->
+                                    paths.forEach { path ->
+                                        val targetPath =
+                                            tempDir.toPath().resolve(resourceDirPath.relativize(path).toString())
+                                        if (Files.isDirectory(path)) {
+                                            Files.createDirectories(targetPath)
+                                        } else {
+                                            Files.copy(path, targetPath, StandardCopyOption.REPLACE_EXISTING)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        else -> Paths.get(uri).let { resourceDirPath ->
                             Files.walk(resourceDirPath).use { paths ->
                                 paths.forEach { path ->
                                     val targetPath =
@@ -261,48 +323,35 @@ interface SpeechGeneration : AutoCloseable {
                         }
                     }
 
-                    else -> Paths.get(uri).let { resourceDirPath ->
-                        Files.walk(resourceDirPath).use { paths ->
-                            paths.forEach { path ->
-                                val targetPath = tempDir.toPath().resolve(resourceDirPath.relativize(path).toString())
-                                if (Files.isDirectory(path)) {
-                                    Files.createDirectories(targetPath)
-                                } else {
-                                    Files.copy(path, targetPath, StandardCopyOption.REPLACE_EXISTING)
-                                }
-                            }
-                        }
+                    require(Files.exists(Path(tempDir.absolutePath))) { "Incorrect eSpeak path" }
+
+                    require(Files.exists(Path(modelPath))) { "Incorrect model path" }
+
+                    require(Files.exists(Path(configurationPath))) { "Incorrect configuration path" }
+
+                    val configurationJson = Gson().fromJson(File(configurationPath).readText(), JsonObject::class.java)
+
+                    val modelConfig = PiperConfiguration.ModelConfig().apply {
+                        parseModelConfig(json = configurationJson, config = this)
                     }
-                }
 
-                require(Files.exists(Path(tempDir.absolutePath))) { "Incorrect eSpeak path" }
+                    val phonemeConfig = PiperConfiguration.PhonemeConfig().apply {
+                        parsePhonemeConfig(json = configurationJson, config = this)
+                    }
 
-                require(Files.exists(Path(modelPath))) { "Incorrect model path" }
+                    val synthesisConfig = PiperConfiguration.SynthesisConfig().apply {
+                        parseSynthesisConfig(json = configurationJson, config = this)
+                    }
 
-                require(Files.exists(Path(configurationPath))) { "Incorrect configuration path" }
-
-                val configurationJson = Gson().fromJson(File(configurationPath).readText(), JsonObject::class.java)
-
-                val modelConfig = PiperConfiguration.ModelConfig().apply {
-                    parseModelConfig(json = configurationJson, config = this)
-                }
-
-                val phonemeConfig = PiperConfiguration.PhonemeConfig().apply {
-                    parsePhonemeConfig(json = configurationJson, config = this)
-                }
-
-                val synthesisConfig = PiperConfiguration.SynthesisConfig().apply {
-                    parseSynthesisConfig(json = configurationJson, config = this)
-                }
-
-                PiperSpeechGeneration(
-                    nativePiperSpeechGeneration = NativePiperSpeechGeneration(dataPath = tempDir.absolutePath),
-                    model = DefaultPiperOnnxModel(modelPath = modelPath),
-                    configuration = PiperConfiguration(
-                        modelConfig = modelConfig, phonemeConfig = phonemeConfig, synthesisConfig = synthesisConfig
+                    PiperSpeechGeneration(
+                        nativePiperSpeechGeneration = NativePiperSpeechGeneration(dataPath = tempDir.absolutePath),
+                        model = DefaultPiperOnnxModel(modelPath = modelPath),
+                        configuration = PiperConfiguration(
+                            modelConfig = modelConfig, phonemeConfig = phonemeConfig, synthesisConfig = synthesisConfig
+                        ),
+                        speakerId = speakerId
                     )
-                )
-            }
+                }
         }
     }
 }

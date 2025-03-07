@@ -2,6 +2,8 @@ package com.github.numq.speechgeneration.piper
 
 import com.github.numq.speechgeneration.SpeechGeneration
 import com.github.numq.speechgeneration.piper.model.PiperOnnxModel
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.ByteArrayOutputStream
 import java.text.Normalizer
 
@@ -9,6 +11,7 @@ internal class PiperSpeechGeneration(
     private val nativePiperSpeechGeneration: NativePiperSpeechGeneration,
     private val model: PiperOnnxModel,
     configuration: PiperConfiguration,
+    speakerId: Long,
 ) : SpeechGeneration.Piper {
     private companion object {
         private const val CLAUSE_TYPE_CLAUSE = 0x00040000
@@ -191,6 +194,8 @@ internal class PiperSpeechGeneration(
         )
     }
 
+    private val mutex = Mutex()
+
     private val modelConfig = configuration.modelConfig
 
     private val phonemeConfig = configuration.phonemeConfig
@@ -251,9 +256,23 @@ internal class PiperSpeechGeneration(
 
     override val sampleRate = synthesisConfig.sampleRate
 
+    override val channels = synthesisConfig.channels
+
+    override val numSpeakers = modelConfig.numSpeakers
+
+    override var selectedSpeakerId = speakerId.coerceIn(0L, numSpeakers - 1L)
+
+    override suspend fun selectSpeakerId(speakerId: Long) = mutex.withLock {
+        runCatching {
+            selectedSpeakerId = speakerId
+        }
+    }
+
     override suspend fun generate(text: String) = runCatching {
         val phonemes: MutableList<Char> = mutableListOf()
+
         val phonemeIds = mutableListOf<Long>()
+
         val missingPhonemes = mutableMapOf<Char, Long>()
 
         var unprocessedText = text.trim()
@@ -278,8 +297,7 @@ internal class PiperSpeechGeneration(
 
             phonemes.addAll(normalizedPhonemes.toList())
 
-            val punctuation = clauseTerminator and 0x000FFFFF
-            when (punctuation) {
+            when (clauseTerminator and 0x000FFFFF) {
                 CLAUSE_EXCLAMATION -> phonemes.add('!')
 
                 CLAUSE_QUESTION -> phonemes.add('?')
@@ -311,7 +329,7 @@ internal class PiperSpeechGeneration(
                             noiseScale = noiseScale,
                             lengthScale = lengthScale,
                             noiseW = noiseW,
-                            sid = modelConfig.speakerIdMap.values.randomOrNull()?.toLong()
+                            sid = selectedSpeakerId.takeIf { numSpeakers > 1 }
                         ).mapCatching(::convertFLT32ToPCM16).getOrThrow()
                     }
                 )

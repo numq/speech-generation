@@ -2,8 +2,12 @@ package com.github.numq.speechgeneration.bark
 
 import com.github.numq.speechgeneration.SpeechGeneration
 
-internal class BarkSpeechGeneration(private val nativeBarkSpeechGeneration: NativeBarkSpeechGeneration) : SpeechGeneration.Bark {
+internal class BarkSpeechGeneration(
+    private val nativeBarkSpeechGeneration: NativeBarkSpeechGeneration,
+) : SpeechGeneration.Bark {
     override val sampleRate = 22_500
+
+    override val channels = 1
 
     private fun convertFLT32ToPCM16(inputBytes: ByteArray): ByteArray {
         val inputSize = inputBytes.size / 4
