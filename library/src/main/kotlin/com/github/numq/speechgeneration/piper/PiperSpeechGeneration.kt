@@ -3,6 +3,8 @@ package com.github.numq.speechgeneration.piper
 import com.github.numq.speechgeneration.SpeechGeneration
 import com.github.numq.speechgeneration.piper.model.PiperOnnxModel
 import com.github.numq.speechgeneration.piper.model.TashkeelOnnxModel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.isActive
 import java.io.ByteArrayOutputStream
 import java.text.Normalizer
 
@@ -274,7 +276,7 @@ internal class PiperSpeechGeneration(
             unprocessedText = tashkeelModel.process(unprocessedText).getOrThrow()
         }
 
-        while (unprocessedText.isNotBlank()) {
+        while (currentCoroutineContext().isActive && unprocessedText.isNotBlank()) {
             val phonemizationResult = nativePiperSpeechGeneration.phonemize(
                 voice = phonemeConfig.voice,
                 text = unprocessedText
