@@ -2,16 +2,15 @@ package com.github.numq.speechgeneration.piper
 
 import com.github.numq.speechgeneration.SpeechGeneration
 import com.github.numq.speechgeneration.piper.model.PiperOnnxModel
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import com.github.numq.speechgeneration.piper.model.TashkeelOnnxModel
 import java.io.ByteArrayOutputStream
 import java.text.Normalizer
 
 internal class PiperSpeechGeneration(
     private val nativePiperSpeechGeneration: NativePiperSpeechGeneration,
-    private val model: PiperOnnxModel,
+    private val piperModel: PiperOnnxModel,
+    private val tashkeelModel: TashkeelOnnxModel,
     configuration: PiperConfiguration,
-    speakerId: Long,
 ) : SpeechGeneration.Piper {
     private companion object {
         private const val CLAUSE_TYPE_CLAUSE = 0x00040000
@@ -194,11 +193,13 @@ internal class PiperSpeechGeneration(
         )
     }
 
-    private val mutex = Mutex()
+    private val modelConfig = configuration.modelConfig.apply {
+        require(languageCode.isNotBlank()) { "Invalid Piper model language code" }
+    }
 
-    private val modelConfig = configuration.modelConfig
-
-    private val phonemeConfig = configuration.phonemeConfig
+    private val phonemeConfig = configuration.phonemeConfig.apply {
+        require(voice.isNotBlank()) { "Invalid Piper voice" }
+    }
 
     private val synthesisConfig = configuration.synthesisConfig
 
@@ -260,15 +261,7 @@ internal class PiperSpeechGeneration(
 
     override val numSpeakers = modelConfig.numSpeakers
 
-    override var selectedSpeakerId = speakerId.coerceIn(0L, numSpeakers - 1L)
-
-    override suspend fun selectSpeakerId(speakerId: Long) = mutex.withLock {
-        runCatching {
-            selectedSpeakerId = speakerId
-        }
-    }
-
-    override suspend fun generate(text: String) = runCatching {
+    override suspend fun generate(text: String, speakerId: Long) = runCatching {
         val phonemes: MutableList<Char> = mutableListOf()
 
         val phonemeIds = mutableListOf<Long>()
@@ -276,6 +269,10 @@ internal class PiperSpeechGeneration(
         val missingPhonemes = mutableMapOf<Char, Long>()
 
         var unprocessedText = text.trim()
+
+        if (modelConfig.languageCode.startsWith("ar")) {
+            unprocessedText = tashkeelModel.process(unprocessedText).getOrThrow()
+        }
 
         while (unprocessedText.isNotBlank()) {
             val phonemizationResult = nativePiperSpeechGeneration.phonemize(
@@ -324,12 +321,12 @@ internal class PiperSpeechGeneration(
             baos.apply {
                 writeBytes(
                     with(synthesisConfig) {
-                        model.generate(
+                        piperModel.generate(
                             phonemeIds = phonemeIds.toLongArray(),
                             noiseScale = noiseScale,
                             lengthScale = lengthScale,
                             noiseW = noiseW,
-                            sid = selectedSpeakerId.takeIf { numSpeakers > 1 }
+                            sid = speakerId.coerceIn(0L, numSpeakers - 1L)
                         ).mapCatching(::convertFLT32ToPCM16).getOrThrow()
                     }
                 )
@@ -337,5 +334,8 @@ internal class PiperSpeechGeneration(
         }
     }
 
-    override fun close() = runCatching { model.close() }.getOrDefault(Unit)
+    override fun close() = runCatching {
+        piperModel.close()
+        tashkeelModel.close()
+    }.getOrDefault(Unit)
 }

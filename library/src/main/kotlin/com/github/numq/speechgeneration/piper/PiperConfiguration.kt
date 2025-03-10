@@ -8,10 +8,11 @@ data class PiperConfiguration(
     data class ModelConfig(
         var numSpeakers: Int = 0,
         var speakerIdMap: MutableMap<String, Int> = mutableMapOf(),
+        var languageCode: String = "",
     )
 
     data class PhonemeConfig(
-        var voice: String = "en-us",
+        var voice: String = "",
         var phonemeType: PhonemeType = PhonemeType.TEXT,
         var phonemeIdMap: MutableMap<Char, List<Long>> = mutableMapOf(),
     )
