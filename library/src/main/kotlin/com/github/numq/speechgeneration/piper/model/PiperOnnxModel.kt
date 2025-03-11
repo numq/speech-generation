@@ -8,4 +8,8 @@ internal interface PiperOnnxModel : AutoCloseable {
         noiseW: Float,
         sid: Long?,
     ): Result<FloatArray>
+
+    companion object {
+        fun create(modelPath: String): PiperOnnxModel = OnnxPiperOnnxModel(modelPath = modelPath)
+    }
 }

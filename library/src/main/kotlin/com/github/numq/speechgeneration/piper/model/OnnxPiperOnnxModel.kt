@@ -4,7 +4,7 @@ import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
 
-internal class DefaultPiperOnnxModel(modelPath: String) : PiperOnnxModel {
+internal class OnnxPiperOnnxModel(modelPath: String) : PiperOnnxModel {
     private val env by lazy { OrtEnvironment.getEnvironment() }
 
     private val session by lazy {

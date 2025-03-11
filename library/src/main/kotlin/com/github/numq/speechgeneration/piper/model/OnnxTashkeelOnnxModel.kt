@@ -4,7 +4,7 @@ import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
 
-internal class DefaultTashkeelOnnxModel(modelPath: String) : TashkeelOnnxModel {
+internal class OnnxTashkeelOnnxModel(modelPath: String) : TashkeelOnnxModel {
     private companion object {
         const val PAD_ID = 0
         const val UNK_ID = 1
