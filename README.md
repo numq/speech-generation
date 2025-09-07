@@ -1,7 +1,20 @@
-# Speech generation
+<h1 align="center">Speech generation</h1>
 
-JVM library for speech generation written in Kotlin and based on the C++
-libraries [bark.cpp](https://github.com/PABannier/bark.cpp) and [piper](https://github.com/rhasspy/piper)
+<br>
+
+<div align="center" style="display: grid; justify-content: center;">
+
+|                                                                  🌟                                                                   |                  Support this project                   |               
+|:-------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------:|
+|  <img src="https://raw.githubusercontent.com/ErikThiart/cryptocurrency-icons/master/32/bitcoin.png" alt="Bitcoin (BTC)" width="32"/>  | <code>bc1qs6qq0fkqqhp4whwq8u8zc5egprakvqxewr5pmx</code> | 
+| <img src="https://raw.githubusercontent.com/ErikThiart/cryptocurrency-icons/master/32/ethereum.png" alt="Ethereum (ETH)" width="32"/> | <code>0x3147bEE3179Df0f6a0852044BFe3C59086072e12</code> |
+|  <img src="https://raw.githubusercontent.com/ErikThiart/cryptocurrency-icons/master/32/tether.png" alt="USDT (TRC-20)" width="32"/>   |     <code>TKznmR65yhPt5qmYCML4tNSWFeeUkgYSEV</code>     |
+
+</div>
+
+<br>
+
+<p align="center">JVM library for speech generation written in Kotlin and based on the C++ libraries <a href="https://github.com/PABannier/bark.cpp">bark.cpp</a> and <a href="https://github.com/rhasspy/piper">piper</a></p>
 
 ### See also
 
